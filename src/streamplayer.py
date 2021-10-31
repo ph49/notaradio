@@ -4,7 +4,6 @@ import re
 import threading
 import logging
 import subprocess
-from time import sleep
 
 class StreamPlayer:
                     
@@ -57,6 +56,7 @@ class StreamPlayer:
 
 
 if __name__ == "__main__":
+    from time import sleep
     logging.basicConfig(level=logging.DEBUG)
     player = StreamPlayer();
     player.set_volume(10)

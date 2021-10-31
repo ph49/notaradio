@@ -2,7 +2,6 @@
 
 import logging
 import configparser
-from time import sleep
 
 from streamplayer import StreamPlayer
 
@@ -57,6 +56,7 @@ class StreamPlayerApp:
 
 
 if __name__ == "__main__":
+    from time import sleep
     logging.basicConfig(level=logging.DEBUG)
     app = StreamPlayerApp()
     sleep(4)
