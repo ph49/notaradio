@@ -2,9 +2,10 @@
 
 import logging
 import configparser
+import time
 
 from streamplayer import StreamPlayer
-
+from keys import Keys
 
 class StreamPlayerApp:
     def __init__(self):
@@ -35,6 +36,10 @@ class StreamPlayerApp:
         if channel_id in self.config:
             uri = self.config[channel_id]['uri']
             self.stream_player.select_stream(uri)
+            self.cfg['channel'] = "{}".format(channel)
+            with open(self.config_file, "w") as f:
+                self.config.write(f)        
+        return int(self.cfg['channel'])
 
     def change_volume(self, delta):
         volume = int(self.cfg.get('volume', '0'))
@@ -47,6 +52,7 @@ class StreamPlayerApp:
         with open(self.config_file, "w") as f:
             self.config.write(f)
         self.stream_player.set_volume(volume)
+        return volume
        
     def select_stream(self, uri):
         self.cfg['stream'] = "{}".format(uri)
@@ -55,18 +61,33 @@ class StreamPlayerApp:
         self.stream_player.select_stream(uri)
 
 
+
+
 if __name__ == "__main__":
     from time import sleep
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
     app = StreamPlayerApp()
-    sleep(4)
-    app.select_channel(0)
-    sleep(4)
-    app.change_volume(-10000)
-    app.change_volume(20)
-    sleep(2)
-    app.change_volume(-10)
-    sleep(2)
-    app.select_channel(1)
-    sleep(4)
-    del app
+    keys = Keys()
+
+    channel = [0]
+    def channel_up(key):
+        channel[0] += 1
+        channel[0] = app.select_channel(channel[0])
+
+    def channel_down(key):
+        channel[0] -= 1
+        channel[0] = app.select_channel(channel[0])
+
+    def level_up(key):
+        app.change_volume(+10)
+
+    def level_down(key):
+        app.change_volume(-10)
+
+    keys.set_handler(0, channel_up)
+    keys.set_handler(1, channel_down)
+    keys.set_handler(2, level_up)
+    keys.set_handler(3, level_down)
+
+    while True:
+        time.sleep(5)
