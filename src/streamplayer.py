@@ -47,6 +47,9 @@ class StreamPlayer:
     def __tell_mpg123(self, command):
         self.mpg123_popen.stdin.write("{}\n".format(command))
 
+    def stop(self):
+        self.__tell_mpg123("s")
+
     def close(self):
         # Terminate (signal 15) does not cause mpg123 -R to exit (on my mac)
         # so try sending SIGINT (which does!)
