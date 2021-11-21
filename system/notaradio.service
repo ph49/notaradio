@@ -1,0 +1,11 @@
+[Unit]
+Description=Not A Radio
+After=network.target
+Wants=network.target
+
+[Service]
+ExecStartPre=/bin/sh -xc 'while ! ip addr show dev wlan0 up|grep -w inet ; do sleep 1; done'
+ExecStart=/bin/sh -c 'cd /home/pi/notaradio/src; exec >/dev/console 2>&1; exec python3 streamplayerapp.py'
+
+[Install]
+WantedBy=multi-user.target
