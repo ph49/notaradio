@@ -3,8 +3,19 @@
 import logging
 import pygame
 from pygame import Rect
+import platform
 
 class Display:
+    @classmethod
+    def default(cls, *args, **kwargs):
+        system = platform.system()
+        if system == 'Darwin':
+            return DisplayMac(*args, **kwargs)
+        elif system == 'Linux':
+            return DisplayTft(*args, **kwargs)
+        else:
+            raise Exception("NO NATIVE DISPLAY")
+
     def __init__(self):
         self.__volume = 50
         self.__channel = 2
@@ -79,7 +90,33 @@ class Display:
 
 class DisplayTft(Display):
     def __init__(self, *args, **kwargs):
+        import buttons
+        import time
         super(DisplayTft, self).__init__(*args, **kwargs)
+        self._buttons = buttons.Buttons()
+        def send_key(keysym):
+            pygame.event.post(pygame.event.Event(pygame.KEYDOWN, key=keysym))
+
+        self._surface.fill((255,255,255))
+        self._refresh()
+        time.sleep(0.1)
+        self._surface.fill((255,0,0))
+        self._refresh()
+        time.sleep(0.1)
+        self._surface.fill((0,255,0))
+        self._refresh()
+        time.sleep(0.1)
+        self._surface.fill((0,0,255))
+        self._refresh()
+        time.sleep(0.1)
+        self._surface.fill((0,0,0))
+        self._refresh()
+
+
+        self._buttons.set_handler(0, lambda key: send_key(pygame.K_1))
+        self._buttons.set_handler(1, lambda key: send_key(pygame.K_2))
+        self._buttons.set_handler(2, lambda key: send_key(pygame.K_3))
+        self._buttons.set_handler(3, lambda key: send_key(pygame.K_4))
 
     def _refresh(self):
         with open("/dev/fb1","wb") as fb:
@@ -92,21 +129,35 @@ class DisplayMac(Display):
         self.__screen = pygame.display.set_mode((320,240))
         pygame.display.set_caption("notaradio")
 
+        self._surface.fill((255,255,255))
+        self._refresh()
+        self._surface.fill((255,0,0))
+        self._refresh()
+        self._surface.fill((0,255,0))
+        self._refresh()
+        self._surface.fill((0,0,255))
+        self._refresh()
+        self._surface.fill((0,0,0))
+        self._refresh()
+
+
     def _refresh(self):
         pygame.Surface.blit(self.__screen, self._surface, (0,0))
         pygame.display.update()
 
 if __name__ == "__main__":
-    from pprint import pp
+    from pprint import pprint as pp
     import time
     import threading
 
     logging.basicConfig(level=logging.DEBUG)
-    display = DisplayMac()
+    display = Display.default()
     display.update()
     ex=[0]
     def end():
         ex[0]=1
+        event = pygame.event.Event(pygame.QUIT)
+        pygame.event.post(event)
 
     def vol(n):
         display.set_volume(n)
@@ -128,5 +179,6 @@ if __name__ == "__main__":
     threading.Timer(3, lambda: text("bananas are yellow")).start()
     threading.Timer(5, end ).start()
     while not ex[0]:
-        ev = pygame.event.poll()
-        pp(ev)
+        ev = pygame.event.wait()
+        if ev.type == pygame.KEYDOWN:
+            pp(ev)

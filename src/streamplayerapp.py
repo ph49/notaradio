@@ -5,17 +5,16 @@ import sys
 import configparser
 import time
 import subprocess
-from display import Display, DisplayTft
+from display import Display
 
 from streamplayer import StreamPlayer
-from keys import Keys
 
 class StreamPlayerApp:
     def __init__(self):
         self.config_file = "notaradio.ini"
         self.load_from_config_file()
         self.stream_player = StreamPlayer()
-        self.display = DisplayTft()
+        self.display = Display.default()
 
         if 'player' in self.config:
             if 'channel' in self.cfg:
@@ -26,6 +25,8 @@ class StreamPlayerApp:
                 self.display.set_volume(self.cfg['volume'])
             if 'name' in self.cfg:
                 self.display.set_text(self.cfg['name'])
+
+        self.channel = self.select_channel(-1)
 
     def __del__(self):
         self.stream_player.close()
@@ -84,82 +85,77 @@ class StreamPlayerApp:
     def close(self):
         self.stream_player.close()
 
+    def channel_up(self):
+        if not self.awake():
+            self.wake_up()
+            return
+            
+        self.channel += 1
+        self.channel = self.select_channel(self.channel)
+
+    def channel_down(self):
+        if not self.awake():
+            self.wake_up()
+            return
+            
+        self.channel -= 1
+        self.channel = self.select_channel(self.channel)
+
+    def level_up(self):
+        if not self.awake():
+            self.wake_up()
+
+        self.change_volume(+5)
+
+    def level_down(self):
+        if not self.awake():
+            self.wake_up()
+            return
+            
+        if (self.get_volume() == 0):
+            self.go_to_sleep()
+            return
+
+        self.change_volume(-5)
+
+    def go_to_sleep(self):
+        if self.awake():
+            self._awake = False
+            subprocess.run(["../system/go-to-sleep.sh"])
+
+    def wake_up(self):
+        if not self.awake():
+            self._awake = True
+            subprocess.run(["../system/wake-up.sh"])
+
+    def awake(self):
+        return self._awake
+
+    def run(self):
+        import pygame
+        self._awake = False
+        self.wake_up()
+        while True:
+            ev = pygame.event.wait()
+            if ev.type == pygame.KEYDOWN:
+                if ev.key == pygame.K_1:
+                    self.channel_up()
+                elif ev.key == pygame.K_2:
+                    self.channel_down()
+                elif ev.key == pygame.K_3:
+                    self.level_up()
+                elif ev.key == pygame.K_4:
+                    self.level_down()
+                else:
+                    pass
+
+
+
+
 
 
 if __name__ == "__main__":
-    from time import sleep
     logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
+
     app = StreamPlayerApp()
-    keys = Keys()
-    state = {'app': app}
-
-    channel = [app.select_channel(-1)]
-
-    def getapp():
-        return state['app']
-
-    def setapp(app):
-        state['app'] = app
-
-    def channel_up(key):
-        if not awake():
-            wake_up()
-            return
-            
-        channel[0] += 1
-        channel[0] = getapp().select_channel(channel[0])
-
-    def channel_down(key):
-        if not awake():
-            wake_up()
-            return
-            
-        channel[0] -= 1
-        channel[0] = getapp().select_channel(channel[0])
-
-    def level_up(key):
-        if not awake():
-            wake_up()
-
-        getapp().change_volume(+5)
-
-    def level_down(key):
-        logging.debug("LEVEL_DOWN")
-        if not awake():
-            logging.debug("WAKING UP")
-            wake_up()
-            return
-            
-        if (getapp().get_volume() == 0):
-            logging.debug("GOING TO SLEEP")
-            go_to_sleep()
-            return
-
-        getapp().change_volume(-5)
-
-    def go_to_sleep():
-        if awake():
-            state['awake'] = 0
-            getapp().close()
-            setapp(None)
-            subprocess.run(["../system/go-to-sleep.sh"])
-
-    def wake_up():
-        if not awake():
-            state['awake'] = 1
-            subprocess.run(["../system/wake-up.sh"])
-            setapp(StreamPlayerApp())
-            getapp().change_volume(+5)
-
-
-    def awake():
-        return getapp() != None
-
-    keys.set_handler(0, channel_up)
-    keys.set_handler(1, channel_down)
-    keys.set_handler(2, level_up)
-    keys.set_handler(3, level_down)
-    wake_up()
-
-    while True:
-        time.sleep(5)
+    app.run()
