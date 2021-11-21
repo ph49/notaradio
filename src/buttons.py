@@ -4,11 +4,12 @@ from pprint import pprint as pp
 import RPi.GPIO as GPIO
 import time
 
-class Keys:
+class Buttons:
     PRESS = 1
 
-    __DEBOUNCE_TIME = 0.2
-    __REPEAT_INTERVAL = 1
+    _DEBOUNCE_TIME = 0.15
+    _REPEAT_INTERVAL = .25
+    __FIRST_REPEAT_INTERVAL = 0.8
 
     def __init__(self):
         self.__handlers={}
@@ -29,12 +30,12 @@ class Keys:
         if GPIO.input(bcm) == 0: # it is still down
             key['repeat_count'] += 1
             key.get('callback', lambda:0)(key)
-            key['repeat_timer'] = threading.Timer(Keys.__REPEAT_INTERVAL, lambda : self.__autorepeat(bcm))
+            key['repeat_timer'] = threading.Timer(Buttons._REPEAT_INTERVAL, lambda : self.__autorepeat(bcm))
             key['repeat_timer'].start()
 
     def __detect_edge(self, bcm):
         key = self.__bcm[bcm]
-        if time.time() - key['clicktime'] < Keys.__DEBOUNCE_TIME:
+        if time.time() - key['clicktime'] < Buttons._DEBOUNCE_TIME:
             return
 
         if GPIO.input(key['bcm']) == 0: # it was a button press
@@ -43,7 +44,7 @@ class Keys:
             key['clicktime'] = time.time()
             key['repeat_count'] = 0
             key.get('callback', lambda:0)(key)
-            key['repeat_timer'] = threading.Timer(Keys.__REPEAT_INTERVAL, lambda : self.__autorepeat(bcm))
+            key['repeat_timer'] = threading.Timer(Buttons.__FIRST_REPEAT_INTERVAL, lambda : self.__autorepeat(bcm))
             key['repeat_timer'].start()
         else: # it was a button release
             if key['repeat_timer']:
@@ -57,12 +58,10 @@ class Keys:
     def close():
         print("CLOSE")
 
-
-
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 
-    input = Keys()
+    input = Buttons()
     handle_key = lambda key: pp(key)
 
     input.set_handler(0, handle_key)        
@@ -70,5 +69,5 @@ if __name__ == "__main__":
     input.set_handler(2, handle_key)        
     input.set_handler(3, handle_key)        
 
-    print("Press ANY key")
+    print("Press buttons")
     time.sleep(100)
