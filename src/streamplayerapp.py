@@ -23,9 +23,8 @@ class StreamPlayerApp:
             if 'volume' in self.cfg:
                 self.stream_player.set_volume(self.cfg['volume'])
                 self.display.set_volume(self.cfg['volume'])
-            if 'name' in self.cfg:
-                self.display.set_text(self.cfg['name'])
 
+        # read current channel
         self.channel = self.select_channel(-1)
 
     def __del__(self):
@@ -41,19 +40,33 @@ class StreamPlayerApp:
         self.cfg = self.config['player']
 
     def select_channel(self, channel):
+        """Select channel, if it's defined
+
+        Args:
+            channel (int): Channel number to select. If channel is not defined 
+            in the ini file, this channel change will fail
+
+        Returns:
+            int: new channel number, or old channel number if no change was made
+        """
+        
         channel_id = 'channel {}'.format(channel)
-        if channel_id in self.config:
-            uri = self.config[channel_id]['uri']
-            logging.info("{}: {}".format(channel, uri))
-            self.stream_player.select_stream(uri)
-            self.display.set_channel(channel)
-            self.cfg['channel'] = "{}".format(channel)
-            if 'name' in self.config[channel_id]:
-                self.cfg['name'] = self.config[channel_id]['name']
-                self.display.set_text(self.cfg['name'])
-            with open(self.config_file, "w") as f:
-                self.config.write(f)        
-        return int(self.cfg['channel'])
+        if not channel_id in self.config:
+            return int(self.cfg['channel'])
+    
+        self.cfg['channel'] = "{}".format(channel)
+        self.display.set_channel(channel)
+
+        channel_cfg = self.config[channel_id]
+
+        uri = channel_cfg['uri']
+        self.stream_player.select_stream(uri)
+        self.display.set_text(channel_cfg.get('name', uri))
+
+        with open(self.config_file, "w") as f:
+            self.config.write(f)
+            
+        return channel
 
     def get_volume(self):
         return int(self.cfg.get('volume', '0'))
