@@ -3,15 +3,22 @@
 import logging
 import sys
 import configparser
-import time
+import argparse
+import sys
 import subprocess
 from display import Display
 
 from streamplayer import StreamPlayer
 
 class StreamPlayerApp:
-    def __init__(self):
+    def __init__(self, argv):
+        # defaults
         self.config_file = "notaradio.ini"
+
+        # cli overrides
+        self.parse_args(argv)
+
+        # load from file
         self.load_from_config_file()
         self.stream_player = StreamPlayer()
         self.display = Display.default()
@@ -29,6 +36,13 @@ class StreamPlayerApp:
 
     def __del__(self):
         self.stream_player.close()
+
+    def parse_args(self, argv):
+        parser = argparse.ArgumentParser()
+        parser.add_argument('-f', '--configFile')
+        args = parser.parse_args(argv)
+        if args.configFile:
+            self.confconfig_file = args.configFile
 
     def load_from_config_file(self):
         self.config = configparser.ConfigParser()
@@ -170,5 +184,5 @@ class StreamPlayerApp:
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
 
-    app = StreamPlayerApp()
+    app = StreamPlayerApp(argv=sys.argv[1:])
     app.run()
