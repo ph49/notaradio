@@ -28,7 +28,7 @@ hdmi_force_hotplug=0
 dtparam=spi=on
 dtparam=i2c1=on
 dtparam=i2c_arm=on
-dtoverlay=pitft28-resistive,rotate=270,speed=64000000,fps=30
+dtoverlay=pitft28-resistive,rotate=90,speed=64000000,fps=30
 ```
 
 The documentation for the touchscreen says “We bring out GPIO #23, #22, #21, and #18 to the four switch locations!”, but inspection of the schematic indicates that the microswitches are connected to these GPIO pins (listed top-to-bottom with screen to the RIGHT of the microswitches)

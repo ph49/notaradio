@@ -120,7 +120,7 @@ class DisplayTft(Display):
 
     def _refresh(self):
         with open("/dev/fb1","wb") as fb:
-            fb.write(pygame.transform.rotate(self._surface, 180).convert(16,0).get_buffer())
+            fb.write(pygame.transform.rotate(self._surface, 0).convert(16,0).get_buffer())
         # time.sleep(0.1)
 
 class DisplayMac(Display):
