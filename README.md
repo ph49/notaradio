@@ -16,10 +16,20 @@ raspberry pi streaming internet radio
 
 Hook this all together in the obvious way. 
 ### Power Switch
-The slider switch connects pins GND and EN on the powerboost board, to provide a power on/off switch to the Raspberry Pi.  I soldered a USB micro cable directly to the power output locations on the powerboost board, so this can be attached and detached from the pi zero.
+The slider switch connects pins GND and EN on the powerboost board, to provide a power on/off switch to the Raspberry Pi.  Originally I soldered a USB micro cable directly to the power output locations on the powerboost board, so it could be attached and detached from the pi zero's USB power connector.  In later iterations, i power the pi via breakout pins on the audio bonnet, which i attach to breakout pins on the powerboost board.  This seems a bit indirect, but it works better given the physical constraints.
 
-### GPIO pins
-The connector to the TFT screen resisted twisting in such a way that I ended up installing the screen upside down (with the micro-switches on the left).
+### Screen, and microswitches
+The connector to the TFT screen resisted twisting in such a way that I originally ended up installing the screen upside down (with the micro-switches on the left).  In a later remodel, I inverted the pi zero so the ribbon cable no longer has a twist and the screen has the buttons on the right.
+
+I ended up with this screen configuration in `config.txt` 
+
+```
+hdmi_force_hotplug=0
+dtparam=spi=on
+dtparam=i2c1=on
+dtparam=i2c_arm=on
+dtoverlay=pitft28-resistive,rotate=270,speed=64000000,fps=30
+```
 
 The documentation for the touchscreen says “We bring out GPIO #23, #22, #21, and #18 to the four switch locations!”, but inspection of the schematic indicates that the microswitches are connected to these GPIO pins (listed top-to-bottom with screen to the RIGHT of the microswitches)
 |GPIO|
@@ -29,15 +39,6 @@ The documentation for the touchscreen says “We bring out GPIO #23, #22, #21, a
 |BCM 22|
 |BCM 17|
 
-I ended up with this screen configuration in `config.txt` 
-
-```
-hdmi_force_hotplug=0
-dtparam=spi=on
-dtparam=i2c1=on
-dtparam=i2c_arm=on
-dtoverlay=pitft28-resistive,rotate=90,speed=64000000,fps=30
-```
 
 ### Backlight:
 
@@ -71,13 +72,19 @@ With music playing, you can see these flashing up and down, in `watch -d gpio re
 
 
 
-
-
 ## Software Dependencies
+
+### Python
+pip3 install pygame
+
+### Required Packages
+apt install libsdl2-2.0-0
+apt install libsdl2-ttf-2.0-0
+apt install mpg123
 
 ## This Code
 
-## WISH LIST / TODO / BUGS
+### WISH LIST / TODO / BUGS
 
 - Bug : kill don't kill the python process, so shutdown don't work
 
