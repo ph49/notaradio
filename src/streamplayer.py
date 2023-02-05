@@ -4,6 +4,7 @@ import re
 import threading
 import logging
 import subprocess
+import time
 
 class StreamPlayer:
                     
@@ -15,6 +16,7 @@ class StreamPlayer:
        
     def select_stream(self, uri):
         self.__tell_mpg123("L {}".format(uri))
+
 
     def __read_mpg123_stdout(self):
         while True:
@@ -33,6 +35,11 @@ class StreamPlayer:
                 logging.info("VOLUME: {}".format(volume))
 
     def __start_mpg123(self):
+        # run this background command to stop audio glitching. The power demand spikes 
+        # from the audio glitches were causing the rpi to reboot!
+        self.__aplay = subprocess.Popen(["/usr/bin/aplay", "-D", "default", 
+        "-t", "raw", "-r", "44100", "-c", "2", "-f", "S16_LE", "/dev/zero"])
+
         self.mpg123_popen = subprocess.Popen(["mpg123", "-R"], 
 #        self.mpg123_popen = subprocess.Popen(["perl", "foo.pl"], 
             universal_newlines=True,
@@ -56,17 +63,17 @@ class StreamPlayer:
         self.mpg123_popen.send_signal(2)
         self.mpg123_popen.wait()
         self.mpg123_stdout_reader_thread.join()
-
+        self.__aplay.send_signal(15)
+        self.__aplay.wait()
 
 if __name__ == "__main__":
     from time import sleep
     logging.basicConfig(level=logging.DEBUG)
     player = StreamPlayer();
-    player.set_volume(10)
+    player.set_volume(40)
     player.select_stream("http://ice6.somafm.com/covers-128-mp3")
     sleep(2)
     player.set_volume(20)
-    sleep(2)
     player.select_stream("http://favorites.stream.publicradio.org/favorites.mp3")
     sleep(2)
     player.close()
