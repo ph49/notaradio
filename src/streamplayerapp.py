@@ -113,55 +113,24 @@ class StreamPlayerApp:
         self.stream_player.close()
 
     def channel_up(self):
-        if not self.awake():
-            self.wake_up()
-            return
-            
         self.channel += 1
         self.channel = self.select_channel(self.channel)
 
     def channel_down(self):
-        if not self.awake():
-            self.wake_up()
-            return
-            
         self.channel -= 1
         self.channel = self.select_channel(self.channel)
 
     def level_up(self):
-        if not self.awake():
-            self.wake_up()
-
         self.change_volume(+5)
 
     def level_down(self):
-        if not self.awake():
-            self.wake_up()
-            return
-            
         if (self.get_volume() == 0):
-            self.go_to_sleep()
             return
-
         self.change_volume(-5)
-
-    def go_to_sleep(self):
-        if self.awake():
-            self._awake = False
-            subprocess.run(["../system/go-to-sleep.sh"])
-
-    def wake_up(self):
-        if not self.awake():
-            self._awake = True
-            subprocess.run(["../system/wake-up.sh"])
-
-    def awake(self):
-        return self._awake
 
     def run(self):
         import pygame
-        self._awake = False
-        self.wake_up()
+
         while True:
             ev = pygame.event.wait()
             if ev.type == pygame.KEYDOWN:

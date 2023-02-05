@@ -56,7 +56,7 @@ gpio -g pwm 18 1023
 gpio -g pwm 18 0
 ```
 
-HOWEVER -g 18 is the same as GPIO.1 so it clashes with the sound card, so don’t do that.  Probably should cut this jumper instead.
+HOWEVER -g 18 is the same as GPIO.1 so it clashes with the sound card, so don’t do that.  I cut this trace (https://learn.adafruit.com/adafruit-pitft-28-inch-resistive-touchscreen-display-raspberry-pi/backlight-control#:~:text=Disabling%20Backlight%20Control) and now the backlight is on full time.
 
 ### Audio Bonnet
 The digital audio "bonnet" uses BCM 18, 19, 21
