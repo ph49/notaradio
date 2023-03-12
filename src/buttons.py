@@ -37,9 +37,10 @@ class Buttons:
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 
-    Buttons.set_gpio_handler(17, lambda x: print(x), detail='KEY 0 (BCM=17)')
-    Buttons.set_gpio_handler(22, lambda x: print(x), detail='KEY 1 (BCM=22)')
-    Buttons.set_gpio_handler(23, lambda x: print(x), detail='KEY 2 (BCM=23)')
-    Buttons.set_gpio_handler(27, lambda x: print(x), detail='KEY 3 (BCM=27)')
+    Buttons.set_gpio_handler(17, print, detail='SW1 (BCM=17)')
+    Buttons.set_gpio_handler(22, print, detail='SW2 (BCM=22)')
+    Buttons.set_gpio_handler(23, print, detail='SW3 (BCM=23)')
+    Buttons.set_gpio_handler(27, print, detail='SW4 (BCM=27)')
+    Buttons.set_gpio_handler(26, print, detail='PB0 (BCM=26)')
     print("Press buttons")
     time.sleep(100)
