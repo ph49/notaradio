@@ -72,8 +72,8 @@ if __name__ == "__main__":
     player = StreamPlayer();
     player.set_volume(40)
     player.select_stream("http://ice6.somafm.com/covers-128-mp3")
-    sleep(2)
+    sleep(5)
     player.set_volume(20)
     player.select_stream("http://favorites.stream.publicradio.org/favorites.mp3")
-    sleep(2)
+    sleep(5)
     player.close()
