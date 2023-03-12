@@ -3,18 +3,14 @@
 import logging
 import pygame
 from pygame import Rect
-import platform
+import os
 
 class Display:
     @classmethod
     def default(cls, *args, **kwargs):
-        system = platform.system()
-        if system == 'Darwin':
-            return DisplayMac(*args, **kwargs)
-        elif system == 'Linux':
+        if os.path.exists("/dev/fb1"):
             return DisplayTft(*args, **kwargs)
-        else:
-            raise Exception("NO NATIVE DISPLAY")
+        return DisplayDesktop(*args, **kwargs)
 
     def __init__(self):
         self.__volume = 50
@@ -91,12 +87,22 @@ class Display:
 class DisplayTft(Display):
     def __init__(self, *args, **kwargs):
         import buttons
+        import rotary
         import time
         super(DisplayTft, self).__init__(*args, **kwargs)
-        self._buttons = buttons.Buttons()
-        def send_key(keysym):
-            pygame.event.post(pygame.event.Event(pygame.KEYDOWN, key=keysym))
 
+        buttons.Buttons.set_gpio_handler(17, lambda key: pygame.event.post(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_1)))
+        buttons.Buttons.set_gpio_handler(22, lambda key: pygame.event.post(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_2)))
+        buttons.Buttons.set_gpio_handler(23, lambda key: pygame.event.post(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_3)))
+        buttons.Buttons.set_gpio_handler(27, lambda key: pygame.event.post(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_4)))
+        buttons.Buttons.set_gpio_handler(26, lambda key: pygame.event.post(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_SPACE)))
+        rotary.Rotary.set_gpio_rotary_handler(5, 6, lambda direction:
+            pygame.event.post(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_PLUS if direction >0 else pygame.K_MINUS))
+        )
+
+        self.flash_screen()
+
+    def flash_screen(self):
         self._surface.fill((255,255,255))
         self._refresh()
         time.sleep(0.1)
@@ -112,20 +118,14 @@ class DisplayTft(Display):
         self._surface.fill((0,0,0))
         self._refresh()
 
-
-        self._buttons.set_handler(0, lambda key: send_key(pygame.K_1))
-        self._buttons.set_handler(1, lambda key: send_key(pygame.K_2))
-        self._buttons.set_handler(2, lambda key: send_key(pygame.K_3))
-        self._buttons.set_handler(3, lambda key: send_key(pygame.K_4))
-
     def _refresh(self):
         with open("/dev/fb1","wb") as fb:
             fb.write(pygame.transform.rotate(self._surface, 0).convert(16,0).get_buffer())
         # time.sleep(0.1)
 
-class DisplayMac(Display):
+class DisplayDesktop(Display):
     def __init__(self, *args, **kwargs):
-        super(DisplayMac, self).__init__(*args, **kwargs)
+        super(DisplayDesktop, self).__init__(*args, **kwargs)
         self.__screen = pygame.display.set_mode((320,240))
         pygame.display.set_caption("notaradio")
 
@@ -177,7 +177,7 @@ if __name__ == "__main__":
     threading.Timer(1, lambda: vol(16)).start()
     threading.Timer(2, lambda: ch(2) ).start()
     threading.Timer(3, lambda: text("bananas are yellow")).start()
-    threading.Timer(5, end ).start()
+    threading.Timer(15, end ).start()
     while not ex[0]:
         ev = pygame.event.wait()
         if ev.type == pygame.KEYDOWN:
