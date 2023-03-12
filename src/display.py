@@ -180,5 +180,5 @@ if __name__ == "__main__":
     threading.Timer(15, end ).start()
     while not ex[0]:
         ev = pygame.event.wait()
-        if ev.type == pygame.KEYDOWN:
+        if ev.type == pygame.KEYDOWN or ev.type == pygame.MOUSEBUTTONDOWN:
             pp(ev)
