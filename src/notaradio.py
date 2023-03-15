@@ -10,7 +10,7 @@ from display import Display
 
 from streamplayer import StreamPlayer
 
-class StreamPlayerApp:
+class NotARadio:
     def __init__(self, argv):
         # defaults
         self.config_file = "notaradio.ini"
@@ -133,17 +133,30 @@ class StreamPlayerApp:
 
         while True:
             ev = pygame.event.wait()
+            print(ev)
+            if ev.type == pygame.QUIT:
+                import os
+                self.stop()
+                os._exit(0)
+
             if ev.type == pygame.KEYDOWN:
-                if ev.key == pygame.K_1:
-                    self.channel_up()
-                elif ev.key == pygame.K_2:
-                    self.channel_down()
-                elif ev.key == pygame.K_3:
+                code = ev.unicode
+                if code == '1':
+                    self.select_channel(1)
+                elif code == '2':
+                    self.select_channel(2)
+                elif code == '3':
+                    self.select_channel(3)
+                elif code == '4':
+                    self.select_channel(4)
+                elif code == '+':
                     self.level_up()
-                elif ev.key == pygame.K_4:
+                elif code == '-':
                     self.level_down()
+                elif code == ' ':
+                    self.change_volume(-300)
                 else:
-                    pass
+                    print(ev)
 
 
 
@@ -153,5 +166,5 @@ class StreamPlayerApp:
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
 
-    app = StreamPlayerApp(argv=sys.argv[1:])
+    app = NotARadio(argv=sys.argv[1:])
     app.run()
