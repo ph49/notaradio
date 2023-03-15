@@ -88,21 +88,25 @@ class DisplayTft(Display):
     def __init__(self, *args, **kwargs):
         import buttons
         import rotary
-        import time
         super(DisplayTft, self).__init__(*args, **kwargs)
 
-        buttons.Buttons.set_gpio_handler(17, lambda key: pygame.event.post(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_1)))
-        buttons.Buttons.set_gpio_handler(22, lambda key: pygame.event.post(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_2)))
-        buttons.Buttons.set_gpio_handler(23, lambda key: pygame.event.post(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_3)))
-        buttons.Buttons.set_gpio_handler(27, lambda key: pygame.event.post(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_4)))
-        buttons.Buttons.set_gpio_handler(26, lambda key: pygame.event.post(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_SPACE)))
-        rotary.Rotary.set_gpio_rotary_handler(5, 6, lambda direction:
-            pygame.event.post(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_PLUS if direction >0 else pygame.K_MINUS))
-        )
+        buttons.Buttons.set_gpio_handler(17, lambda key: pygame.event.post(pygame.event.Event(pygame.KEYDOWN, unicode='1', key=pygame.K_1)))
+        buttons.Buttons.set_gpio_handler(22, lambda key: pygame.event.post(pygame.event.Event(pygame.KEYDOWN, unicode='2', key=pygame.K_2)))
+        buttons.Buttons.set_gpio_handler(23, lambda key: pygame.event.post(pygame.event.Event(pygame.KEYDOWN, unicode='3', key=pygame.K_3)))
+        buttons.Buttons.set_gpio_handler(27, lambda key: pygame.event.post(pygame.event.Event(pygame.KEYDOWN, unicode='4', key=pygame.K_4)))
+        buttons.Buttons.set_gpio_handler(26, lambda key: pygame.event.post(pygame.event.Event(pygame.KEYDOWN, unicode=' ', key=pygame.K_SPACE)))
+        def level(direction):
+            if direction>0:
+                pygame.event.post(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_PLUS, unicode='+'))
+            else:
+                pygame.event.post(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_MINUS, unicode='-'))
+
+        rotary.Rotary.set_gpio_rotary_handler(5, 6, level)
 
         self.flash_screen()
 
     def flash_screen(self):
+        import time
         self._surface.fill((255,255,255))
         self._refresh()
         time.sleep(0.1)
