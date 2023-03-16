@@ -13,76 +13,88 @@ class Display:
         return DisplayDesktop(*args, **kwargs)
 
     def __init__(self):
-        self.__volume = 50
-        self.__channel = 2
-        self.__logo = None
-        self.__text = "Ready"
         pygame.init()
         pygame.font.init()
+        self.__dirty = True
         self.__font = pygame.font.SysFont(None,30)
         self._surface = pygame.Surface((320, 240))
-        self.__layout = {
-            'X1':320-240,
-            'X2':240,
-            'Y1':240/2,
-            'Y2':64
-        }
         self.__values = {'volume':0,
             'channel':0,
-            'image':None,
-            'text':""}
+            'text': ["", "", "", ""]
+        }
 
     def set_volume(self, level):
-        self.__values['volume'] = level
-        self.update()
+        self.__values['volume'] = int(level)
+        self._dirty()
 
-    def set_channel(self, level):
-        self.__values['channel'] = level
-        self.update()
+    def set_channel_text(self, index, text):
+        self.__values['text'][index] = text
+        self._dirty()
 
-    def set_text(self, text):
-        self.__values['text'] = text
-        self.update()
+    def set_channel(self, index):
+        self.__values['channel'] = index
+        self._dirty()
 
     def _refresh(self):
         raise Exception("ERROR calling _refresh on base class")
 
+    def _dirty(self):
+        self.__dirty = True
+
     def update(self):
-        self.__generate_composed_surface()
-        self._refresh()
+        if self.__dirty:
+            self.__generate_composed_surface()
+            self._refresh()
+            self.__dirty = False
         
     def __generate_composed_surface(self):
-        # +-----+--------------------------+
-        # |  ^  |                          |
-        # Y1 ch |                          |
-        # |  v  |       LOGO               |
-        # +-X1--+                          |
-        # |  ^  |                          |
-        # Y1 vol+ - - - - - - - - - - - - -+
-        # |  v  |       TEXT               Y2
-        # +-----+-------X2-----------------+
+        # |X1------------------X2-----------------+
+        # | |                                     |
+        # | |                                     Y1
+        # | |                                     |
+        # | +-------------------------------------+
+        # | |                                     |
+        # | |                                     |
+        # | |                                     |
+        # | +-------------------------------------+
+        # | |                                     |
+        # | |                                     |
+        # | |                                     |
+        # | +-------------------------------------+
+        # | |                                     |
+        # | |                                     |
+        # | |                                     |
+        # +-+-------------------------------------+
 
+        X1 = 24
+        X2 = 320 - X1
+        Y1 = 240 / 4
+        Y2 = 240
+        COL = (80, 80, 200)
         self._surface.fill((0,0,0))
-        pygame.draw.rect(self._surface, (128,128,128), 
-            Rect((0,0),(self.__layout['X1'],self.__layout['Y1'])),
-            width=2)
-        pygame.Surface.blit(self._surface, 
-            self.__font.render("Ch: {}".format(self.__values['channel']), True, (240,240,240)),
-            (16,self.__layout['Y1']*1/2))
-        pygame.draw.rect(self._surface, (128,128,128), 
-            Rect((0,self.__layout['Y1']),
-                (self.__layout['X1'],self.__layout['Y1'])),
-            width=2)
-        pygame.Surface.blit(self._surface, 
-            self.__font.render("Vol: {}".format(self.__values['volume']), True, (240,240,240)),
-            (16,self.__layout['Y1']*3/2))
-        pygame.draw.rect(self._surface, (128,128,128), 
-            Rect((self.__layout['X1'],240),
-                (240,240)),
-            width=2)
-        pygame.Surface.blit(self._surface, 
-            self.__font.render(self.__values['text'], True, (240,240,240)),
-                (self.__layout['X1']+8,self.__layout['Y1']))
+        pygame.draw.rect(self._surface, COL, Rect((0,0),(X1, Y2)),width=2)
+        vh = (Y2-8) * (self.__values['volume']/200.0)
+        pygame.draw.rect(self._surface, COL, Rect((4,Y2-vh-4),(X1-8, vh)),width=0)
+        # pygame.Surface.blit(self._surface, 
+        #     self.__font.render("Ch: {}".format(self.__values['channel']), True, (240,240,240)),
+        #     (16,self.__layout['Y1']*1/2))
+        for ch in range(0,4):
+            BG,FG = (0,0,0),(220,220,180) 
+            if ch == self.__values['channel']:
+                BG,FG = FG,BG
+            pygame.draw.rect(self._surface, BG, Rect((X1,Y1*ch),(X2-1, Y1-1)), width=0)
+            pygame.Surface.blit(self._surface, 
+                self.__font.render(self.__values['text'][ch], True, FG),
+                               (X1 + 16, ch*Y1 + Y1/2 - 15))
+            pygame.draw.rect(self._surface, COL, Rect((X1,Y1*ch),(X2-1, Y1-1)), width=2)
+
+        # pygame.draw.rect(self._surface, (128,128,128), 
+        #     Rect((self.__layout['X1'],240),
+        #         (240,240)),
+        #     width=2)
+        # pygame.Surface.blit(self._surface, 
+        #     self.__font.render(self.__values['text'], True, (240,240,240)),
+        #         (self.__layout['X1']+8,self.__layout['Y1']))
 
 class DisplayTft(Display):
     def __init__(self, *args, **kwargs):
@@ -172,17 +184,27 @@ if __name__ == "__main__":
     def image(file):
         pass
     
-    def text(str):
-        display.set_text(str)
 
     vol(0)
     ch(1)
-    text("")
-    threading.Timer(1, lambda: vol(16)).start()
-    threading.Timer(2, lambda: ch(2) ).start()
-    threading.Timer(3, lambda: text("bananas are yellow")).start()
-    threading.Timer(15, end ).start()
+    display.set_channel_text(0, "channel 0")
+    display.set_channel_text(1, "channel 1")
+    display.set_channel_text(2, "channel 2")
+    display.set_channel_text(3, "channel 3")
+    pygame.time.set_timer(pygame.event.Event(pygame.QUIT), 10000, loops=0)
+#    pygame.time.set_timer(pygame.event.Event(pygame.event.custom_type(),name="ev1",callback=lambda: ch(1)), 2000, loops=0)
+    pygame.time.set_timer(pygame.event.Event(pygame.event.custom_type(),name="ev2",callback=lambda: ch(1)), 4000, loops=0)
+    pygame.time.set_timer(pygame.event.Event(pygame.event.custom_type(),name="ev3",callback=lambda: ch(2)), 6000, loops=0)
+    pygame.time.set_timer(pygame.event.Event(pygame.event.custom_type(),name="ev4",callback=lambda: ch(3)), 8000, loops=0)
     while not ex[0]:
+        display.update()
         ev = pygame.event.wait()
-        if ev.type == pygame.KEYDOWN or ev.type == pygame.MOUSEBUTTONDOWN:
-            pp(ev)
+        print(ev)
+        if ev.type == pygame.QUIT:
+            os._exit(0)
+        else:
+            try:
+                ev.callback()
+            except AttributeError:
+                pass
+

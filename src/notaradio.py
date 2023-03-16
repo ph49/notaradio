@@ -25,14 +25,11 @@ class NotARadio:
 
         if 'player' in self.config:
             if 'channel' in self.cfg:
-                self.select_channel(self.cfg['channel'])
+                self.select_channel(int(self.cfg['channel']))
                 self.display.set_channel(self.cfg['channel'])
             if 'volume' in self.cfg:
                 self.stream_player.set_volume(self.cfg['volume'])
                 self.display.set_volume(self.cfg['volume'])
-
-        # read current channel
-        self.channel = self.select_channel(-1)
 
     def __del__(self):
         self.stream_player.close()
@@ -64,7 +61,7 @@ class NotARadio:
             int: new channel number, or old channel number if no change was made
         """
         
-        channel_id = 'channel {}'.format(channel)
+        channel_id = 'channel {}'.format(channel+1)
         if not channel_id in self.config:
             return int(self.cfg['channel'])
     
@@ -75,7 +72,7 @@ class NotARadio:
 
         uri = channel_cfg['uri']
         self.stream_player.select_stream(uri)
-        self.display.set_text(channel_cfg.get('name', uri))
+        self.display.set_channel_text(0+channel, channel_cfg.get('name', uri))
 
         with open(self.config_file, "w") as f:
             self.config.write(f)
@@ -112,14 +109,6 @@ class NotARadio:
     def close(self):
         self.stream_player.close()
 
-    def channel_up(self):
-        self.channel += 1
-        self.channel = self.select_channel(self.channel)
-
-    def channel_down(self):
-        self.channel -= 1
-        self.channel = self.select_channel(self.channel)
-
     def level_up(self):
         self.change_volume(+5)
 
@@ -131,7 +120,19 @@ class NotARadio:
     def run(self):
         import pygame
 
+        # Wait for network
+        while subprocess.call(['ping', '-c', '1', '8.8.8.8']):
+            pass
+
+
+        ch = self.select_channel(-1)
+        self.select_channel(0)
+        self.select_channel(1)
+        self.select_channel(2)
+        self.select_channel(3)
+        self.select_channel(ch)
         while True:
+            self.display.update()
             ev = pygame.event.wait()
             print(ev)
             if ev.type == pygame.QUIT:
@@ -142,13 +143,13 @@ class NotARadio:
             if ev.type == pygame.KEYDOWN:
                 code = ev.unicode
                 if code == '1':
-                    self.select_channel(1)
+                    self.select_channel(0)
                 elif code == '2':
-                    self.select_channel(2)
+                    self.select_channel(1)
                 elif code == '3':
-                    self.select_channel(3)
+                    self.select_channel(2)
                 elif code == '4':
-                    self.select_channel(4)
+                    self.select_channel(3)
                 elif code == '+':
                     self.level_up()
                 elif code == '-':
