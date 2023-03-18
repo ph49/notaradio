@@ -153,11 +153,11 @@ BCM|Wiring|Physical|Notes
 9||21|SPI0 MISO
 11||23|SPI0 SCLK
 0||27|
-5|||29|Rotary Encoder A
+5||29|Rotary Encoder A
 6||31|Rotary Encoder B
 13||33|
 19|24|35|used by audio bonnet
-26||37|
+26||37|Rotary Encoder Pushbutton
 
 
 
