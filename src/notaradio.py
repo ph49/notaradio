@@ -6,6 +6,7 @@ import configparser
 import argparse
 import sys
 import subprocess
+import os
 from display import Display
 
 from streamplayer import StreamPlayer
@@ -46,8 +47,7 @@ class NotARadio:
         self.config.read(self.config_file)
         if not 'player' in self.config:
             self.config['player']={}
-            with open(self.config_file, "w") as f:
-                self.config.write(f)
+            self.write_config_file()
         self.cfg = self.config['player']
 
     def select_channel(self, channel):
@@ -73,11 +73,16 @@ class NotARadio:
         uri = channel_cfg['uri']
         self.stream_player.select_stream(uri)
         self.display.set_channel_text(0+channel, channel_cfg.get('name', uri))
+        self.write_config_file()
+        return channel
 
+    def write_config_file(self):
         with open(self.config_file, "w") as f:
             self.config.write(f)
-            
-        return channel
+            f.flush()
+            os.fsync(f.fileno())
+
+
 
     def get_volume(self):
         return int(self.cfg.get('volume', '0'))
@@ -93,8 +98,7 @@ class NotARadio:
         if (volume >200):
             volume = 200
         self.cfg['volume'] = "{}".format(volume)
-        with open(self.config_file, "w") as f:
-            self.config.write(f)
+        self.write_config_file()
         logging.info("VOLUME: {}".format(volume))
         self.stream_player.set_volume(volume)
         self.display.set_volume(volume)
@@ -102,8 +106,7 @@ class NotARadio:
        
     def select_stream(self, uri):
         self.cfg['stream'] = "{}".format(uri)
-        with open(self.config_file, "w") as f:
-            self.config.write(f)
+        self.write_config_file()
         self.stream_player.select_stream(uri)
 
     def close(self):
