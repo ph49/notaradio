@@ -12,6 +12,8 @@ class StreamPlayer:
         self.__start_mpg123()
 
     def set_volume(self, volume):
+        # It's too loud!
+        volume = int(volume)/2
         self.__tell_mpg123("V {}".format(volume))
        
     def select_stream(self, uri):
