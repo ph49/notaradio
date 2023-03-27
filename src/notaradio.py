@@ -39,7 +39,7 @@ class NotARadio:
         parser.add_argument('-f', '--configFile')
         args = parser.parse_args(argv)
         if args.configFile:
-            self.confconfig_file = args.configFile
+            self.config_file = args.configFile
 
     def load_from_config_file(self):
         self.config = configparser.ConfigParser()
