@@ -13,6 +13,8 @@ from streamplayer import StreamPlayer
 
 class NotARadio:
     def __init__(self, argv):
+        self.display = Display.default()
+
         # defaults
         self.config_file = "notaradio.ini"
 
@@ -22,7 +24,6 @@ class NotARadio:
         # load from file
         self.load_from_config_file()
         self.stream_player = StreamPlayer()
-        self.display = Display.default()
 
         if 'player' in self.config:
             if 'channel' in self.cfg:

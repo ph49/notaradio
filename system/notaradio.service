@@ -1,10 +1,10 @@
 [Unit]
 Description=Not A Radio
-After=network.target
-Wants=network.target
+After=basic.target
+Wants=basic.target
 
 [Service]
-ExecStart=/bin/sh -c 'cd /home/pi/notaradio/src; exec python3 notaradio.py -f /boot/notaradio.ini'
+ExecStart=/bin/sh -c 'while ! [ -e /dev/fb1 ]; do :; done; cd /home/pi/notaradio/src; fbi -d /dev/fb1 --noverbose notaradio.png </dev/console & exec python3 notaradio.py -f /boot/notaradio.ini'
 
 [Install]
 WantedBy=multi-user.target
