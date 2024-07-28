@@ -13,6 +13,8 @@ from streamplayer import StreamPlayer
 
 class NotARadio:
     def __init__(self, argv):
+
+
         self.display = Display.default()
 
         # defaults
@@ -78,12 +80,10 @@ class NotARadio:
         return channel
 
     def write_config_file(self):
-        with open(self.config_file, "w") as f:
+        b_file = self.config_file+".b"
+        with open(b_file, "w") as f:
             self.config.write(f)
-            f.flush()
-            os.fsync(f.fileno())
-
-
+        os.rename(b_file, self.config_file)
 
     def get_volume(self):
         return int(self.cfg.get('volume', '0'))
